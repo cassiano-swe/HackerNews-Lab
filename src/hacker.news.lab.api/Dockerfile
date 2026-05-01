@@ -13,8 +13,7 @@ COPY . .
 
 RUN dotnet publish src/hacker.news.lab.api/hacker.news.lab.api.csproj \
     -c Release \
-    -o /app/publish \
-    --no-restore
+    -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app

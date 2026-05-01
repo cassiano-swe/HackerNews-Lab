@@ -1,12 +1,24 @@
+using System.Text.Json.Serialization;
+
 namespace hacker.news.lab.domain.models;
 
 public class Story
 {
-    public long Id { get; set; }
-    public string Title { get; set; } = default!;
-    public string? Url { get; set; }
-    public string By { get; set; } = default!;
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("uri")]
+    public string? Uri { get; set; }
+
+    [JsonPropertyName("by")]
+    public string? By { get; set; }
+
+    [JsonPropertyName("time")]
     public DateTime Time { get; set; }
+
+    [JsonPropertyName("score")]
     public int Score { get; set; }
+
+    [JsonPropertyName("descendants")]
     public int Descendants { get; set; }
 }
