@@ -2,13 +2,17 @@
 using hacker.news.lab.infrastructure;
 using hacker.news.lab.application.models;
 using hacker.news.lab.application.contracts;
-using hacker.news.lab.domain.models;
+using hacker.news.lab.infrastructure.Clients.HackerNews;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
+{
+    client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/v0/");
+});
 
 var app = builder.Build();
 
@@ -27,8 +31,9 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
 app.MapGet("/api/v1/stories/best", async (
     int n,
     ISnapshotStore snapshotStore,
-    CancellationToken ct) =>{
-     if (n <= 0 || n > 200)
+    CancellationToken ct) =>
+{
+    if (n <= 0 || n > 200)
         return Results.BadRequest("Invalid 'n'");
 
     var stories = await snapshotStore.GetActiveSnapshotAsync(ct);
