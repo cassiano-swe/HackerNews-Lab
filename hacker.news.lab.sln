@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A6A694E2-AF62-417A-A877-996024CE92F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hacker.news.lab.api", "src\hacker.news.lab.api\hacker.news.lab.api.csproj", "{145D6CDA-0991-4DD5-BCF4-BE5E02D81A9F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hacker.news.lab.worker", "src\hacker.news.lab.worker\hacker.news.lab.worker.csproj", "{322FAFC5-E0B7-4A44-82E7-68A04297CCF2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hacker.news.lab.application", "src\hacker.news.lab.application\hacker.news.lab.application.csproj", "{0D1A828A-3C88-4E2C-8CCE-4C692FE42E36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hacker.news.lab.domain", "src\hacker.news.lab.domain\hacker.news.lab.domain.csproj", "{CB920B28-20D3-49FA-A5C2-479039719393}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hacker.news.lab.infrastructure", "src\hacker.news.lab.infrastructure\hacker.news.lab.infrastructure.csproj", "{C68B99E7-95E5-49C8-95AF-507649AA20C3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{37566638-BDDE-4BE1-AF09-3C1EAFA23367}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "hacker.news.lab.tests", "tests\hacker.news.lab.tests\hacker.news.lab.tests.csproj", "{B40701A5-E7FE-4558-B253-1584CD655DF4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{145D6CDA-0991-4DD5-BCF4-BE5E02D81A9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{145D6CDA-0991-4DD5-BCF4-BE5E02D81A9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{145D6CDA-0991-4DD5-BCF4-BE5E02D81A9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{145D6CDA-0991-4DD5-BCF4-BE5E02D81A9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{322FAFC5-E0B7-4A44-82E7-68A04297CCF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{322FAFC5-E0B7-4A44-82E7-68A04297CCF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{322FAFC5-E0B7-4A44-82E7-68A04297CCF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{322FAFC5-E0B7-4A44-82E7-68A04297CCF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D1A828A-3C88-4E2C-8CCE-4C692FE42E36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D1A828A-3C88-4E2C-8CCE-4C692FE42E36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D1A828A-3C88-4E2C-8CCE-4C692FE42E36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D1A828A-3C88-4E2C-8CCE-4C692FE42E36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB920B28-20D3-49FA-A5C2-479039719393}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB920B28-20D3-49FA-A5C2-479039719393}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB920B28-20D3-49FA-A5C2-479039719393}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB920B28-20D3-49FA-A5C2-479039719393}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C68B99E7-95E5-49C8-95AF-507649AA20C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C68B99E7-95E5-49C8-95AF-507649AA20C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C68B99E7-95E5-49C8-95AF-507649AA20C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C68B99E7-95E5-49C8-95AF-507649AA20C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B40701A5-E7FE-4558-B253-1584CD655DF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B40701A5-E7FE-4558-B253-1584CD655DF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B40701A5-E7FE-4558-B253-1584CD655DF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B40701A5-E7FE-4558-B253-1584CD655DF4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{145D6CDA-0991-4DD5-BCF4-BE5E02D81A9F} = {A6A694E2-AF62-417A-A877-996024CE92F2}
+		{322FAFC5-E0B7-4A44-82E7-68A04297CCF2} = {A6A694E2-AF62-417A-A877-996024CE92F2}
+		{0D1A828A-3C88-4E2C-8CCE-4C692FE42E36} = {A6A694E2-AF62-417A-A877-996024CE92F2}
+		{CB920B28-20D3-49FA-A5C2-479039719393} = {A6A694E2-AF62-417A-A877-996024CE92F2}
+		{C68B99E7-95E5-49C8-95AF-507649AA20C3} = {A6A694E2-AF62-417A-A877-996024CE92F2}
+		{B40701A5-E7FE-4558-B253-1584CD655DF4} = {37566638-BDDE-4BE1-AF09-3C1EAFA23367}
+	EndGlobalSection
+EndGlobal

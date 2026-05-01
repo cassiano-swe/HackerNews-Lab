@@ -1,0 +1,38 @@
+services:
+  api:
+    container_name: hacker-news-lab-api
+    build:
+      context: .
+      dockerfile: src/hacker.news.lab.api/Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    depends_on:
+      - redis
+      - rabbitmq
+
+  worker:
+    container_name: hacker-news-lab-worker
+    build:
+      context: .
+      dockerfile: src/hacker.news.lab.worker/Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Development
+    depends_on:
+      - redis
+      - rabbitmq
+
+  redis:
+    image: redis:7-alpine
+    container_name: hacker-news-lab-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hacker-news-lab-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"

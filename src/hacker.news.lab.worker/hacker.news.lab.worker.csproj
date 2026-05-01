@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-hacker.news.lab.worker-990d963b-4a82-4678-97f1-131ed3b0d742</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\hacker.news.lab.application\hacker.news.lab.application.csproj" />
+    <ProjectReference Include="..\hacker.news.lab.infrastructure\hacker.news.lab.infrastructure.csproj" />
+  </ItemGroup>
+</Project>
