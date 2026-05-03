@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Hosting;
+using hacker.news.lab.worker.Messaging;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddHostedService<Worker>();
-
+builder.Services.AddHostedService<RefreshBestStoriesConsumer>();
 var host = builder.Build();
 host.Run();
 

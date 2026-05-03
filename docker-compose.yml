@@ -14,15 +14,16 @@ services:
       - rabbitmq
 
   worker:
-    container_name: hacker-news-lab-worker
     build:
       context: .
       dockerfile: src/hacker.news.lab.worker/Dockerfile
-    environment:
-      DOTNET_ENVIRONMENT: Development
+    container_name: hacker.news.lab.worker
     depends_on:
-      - redis
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Queue=refresh-best-stories    
 
   redis:
     image: redis:7-alpine
@@ -31,8 +32,14 @@ services:
       - "6379:6379"
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:3-management
     container_name: hacker-news-lab-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

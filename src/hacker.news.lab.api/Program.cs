@@ -1,8 +1,9 @@
-
 using hacker.news.lab.infrastructure;
 using hacker.news.lab.application.models;
 using hacker.news.lab.application.contracts;
 using hacker.news.lab.infrastructure.Clients.HackerNews;
+using hacker.news.lab.infrastructure.Messaging;
+using hacker.news.lab.domain.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,11 @@ builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
 {
     client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/v0/");
 });
+
+builder.Services.Configure<RabbitMqOptions>(
+    builder.Configuration.GetSection("RabbitMq"));
+
+builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 
 var app = builder.Build();
 
@@ -59,5 +65,14 @@ app.MapGet("/api/v1/stories/best", async (
     .WithDescription("The optional n query parameter controls the number of stories returned and must be between 1 and 200.")
     .Produces<List<StoryResponse>>(StatusCodes.Status200OK)
     .Produces<string>(StatusCodes.Status400BadRequest);
+
+app.MapPost("/api/v1/stories/refresh", async (IMessagePublisher publisher, CancellationToken ct) =>
+{
+    await publisher.PublishAsync(
+       new RefreshBestStoriesRequested(DateTime.UtcNow),
+       ct);
+
+    return Results.Accepted();
+});
 
 app.Run();
