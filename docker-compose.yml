@@ -21,6 +21,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - RabbitMq__Host=rabbitmq
       - RabbitMq__Queue=refresh-best-stories    

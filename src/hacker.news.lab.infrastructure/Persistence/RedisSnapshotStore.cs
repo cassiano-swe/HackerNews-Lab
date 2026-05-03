@@ -34,7 +34,7 @@ public class RedisSnapshotStore : ISnapshotStore
         if (json.IsNullOrEmpty)
             return [];
 
-        
+
 
         return JsonSerializer.Deserialize<IReadOnlyList<Story>>(json!) ?? [];
     }
@@ -47,6 +47,13 @@ public class RedisSnapshotStore : ISnapshotStore
         var json = JsonSerializer.Serialize(stories);
 
         await _db.StringSetAsync(tempSnapshotKey, json);
+    }
+
+    public async Task SetSnapshotAsync(string key, IReadOnlyCollection<Story> stories, CancellationToken ct)
+    {
+        var json = JsonSerializer.Serialize(stories);
+
+        await _db.StringSetAsync(key, json);
     }
 
     public async Task SetActiveSnapshotAsync(
