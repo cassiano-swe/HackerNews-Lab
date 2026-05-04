@@ -1,11 +1,11 @@
-using System.Text;
-using System.Text.Json;
 using hacker.news.lab.application.contracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 
 namespace hacker.news.lab.infrastructure.Messaging;
 

@@ -1,7 +1,6 @@
-using System.Net.Http.Json;
 using hacker.news.lab.application.contracts;
-using hacker.news.lab.domain;
 using hacker.news.lab.domain.models;
+using System.Net.Http.Json;
 
 namespace hacker.news.lab.infrastructure.Clients.HackerNews;
 

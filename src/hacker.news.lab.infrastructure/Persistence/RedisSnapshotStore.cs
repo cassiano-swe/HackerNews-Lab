@@ -1,9 +1,9 @@
-using System.Text.Json;
 using hacker.news.lab.application.contracts;
 using hacker.news.lab.domain.models;
 using hacker.news.lab.infrastructure.Options;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
+using System.Text.Json;
 
 namespace hacker.news.lab.infrastructure.Persistence;
 

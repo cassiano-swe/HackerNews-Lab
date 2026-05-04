@@ -1,8 +1,6 @@
 using hacker.news.lab.application.contracts;
+using hacker.news.lab.domain.events;
 using hacker.news.lab.domain.models;
-using hacker.news.lab.domain.Events;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace hacker.news.lab.worker;

@@ -4,9 +4,9 @@ public class RedisOptions
 {
     public string ConnectionString { get; set; } = "localhost:6379";
 
-    public string ActiveSnapshotPointerKey { get; set; } 
+    public string ActiveSnapshotPointerKey { get; set; }
         = "hn:stories:snapshot:active";
 
-    public string SnapshotKeyPrefix { get; set; } 
+    public string SnapshotKeyPrefix { get; set; }
         = "hn:stories:snapshot";
 }

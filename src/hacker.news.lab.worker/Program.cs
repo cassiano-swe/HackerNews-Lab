@@ -1,29 +1,21 @@
 using hacker.news.lab.application.contracts;
 using hacker.news.lab.infrastructure.Clients.HackerNews;
-using hacker.news.lab.infrastructure.Persistence;
 using hacker.news.lab.infrastructure.Messaging;
+using hacker.news.lab.infrastructure.Persistence;
 using hacker.news.lab.infrastructure.Redis;
 using hacker.news.lab.worker;
-using StackExchange.Redis;
-using Polly;
-using Polly.Extensions.Http;
-using System.Net;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetry.Metrics;
+using Polly;
+using Polly.Extensions.Http;
+using StackExchange.Redis;
+using System.Net;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// =========================
-// CONFIG
-// =========================
-
 builder.Services.Configure<RabbitMqOptions>(
     builder.Configuration.GetSection("RabbitMq"));
-
-// =========================
-// REDIS
-// =========================
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(
     _ => ConnectionMultiplexer.Connect("redis:6379"));
@@ -31,15 +23,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
 builder.Services.AddSingleton<ISnapshotStore, RedisSnapshotStore>();
 builder.Services.AddSingleton<ICache, RedisCache>();
 
-// =========================
-// MESSAGING
-// =========================
-
 builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
-
-// =========================
-// HTTP CLIENT + RESILIÊNCIA
-// =========================
 
 builder.Services
     .AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
@@ -49,15 +33,7 @@ builder.Services
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-// =========================
-// WORKER
-// =========================
-
 builder.Services.AddHostedService<BestStoriesWorker>();
-
-// =========================
-// OBSERVABILIDADE
-// =========================
 
 var serviceName = "hacker.news.lab.worker";
 
@@ -86,17 +62,9 @@ builder.Services.AddOpenTelemetry()
             });
     });
 
-// =========================
-// RUN
-// =========================
-
 var app = builder.Build();
 
 app.Run();
-
-// =========================
-// POLLY
-// =========================
 
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {

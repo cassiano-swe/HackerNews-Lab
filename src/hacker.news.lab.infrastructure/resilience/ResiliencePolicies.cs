@@ -1,6 +1,5 @@
 using Polly;
 using Polly.Extensions.Http;
-using Polly.Timeout;
 using System.Net;
 
 namespace hacker.news.lab.infrastructure.resilience;

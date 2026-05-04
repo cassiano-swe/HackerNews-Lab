@@ -1,6 +1,6 @@
-using System.Text.Json;
-using StackExchange.Redis;
 using hacker.news.lab.application.contracts;
+using StackExchange.Redis;
+using System.Text.Json;
 
 namespace hacker.news.lab.infrastructure.Redis;
 

@@ -1,8 +1,8 @@
-using System.Text;
-using System.Text.Json;
+using hacker.news.lab.domain.events;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using hacker.news.lab.domain.Events;
+using System.Text;
+using System.Text.Json;
 
 namespace hacker.news.lab.worker.Messaging;
 
@@ -35,7 +35,7 @@ public class RefreshBestStoriesConsumer : BackgroundService
                     exclusive: false,
                     autoDelete: false);
 
-                break; // conectou com sucesso
+                break;
             }
             catch (Exception ex)
             {
