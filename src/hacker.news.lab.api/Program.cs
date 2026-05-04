@@ -34,16 +34,17 @@ builder.Services.AddOpenTelemetry()
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddSource(serviceName)
-            .AddJaegerExporter(o =>
+            .AddSource("hacker.news.lab.messaging")
+            .AddOtlpExporter(o =>
             {
-                o.AgentHost = "jaeger";
-                o.AgentPort = 6831;
+                o.Endpoint = new Uri("http://jaeger:4317");
             });
     })
     .WithMetrics(metrics =>
     {
         metrics
             .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
             .AddRuntimeInstrumentation()
             .AddPrometheusExporter();
     });
@@ -58,7 +59,7 @@ app.Use(async (context, next) =>
 });
 
 
-app.MapPrometheusScrapingEndpoint(); // /metrics
+app.MapPrometheusScrapingEndpoint("/metrics");
 
 if (app.Environment.IsDevelopment())
 {

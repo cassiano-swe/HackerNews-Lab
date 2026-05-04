@@ -123,6 +123,8 @@ public sealed class BestStoriesWorker : BackgroundService
 
             await _snapshot.SetActiveSnapshotAsync(tempKey, cancellationToken);
 
+            Metrics.StoriesProcessed.Add(ordered.Count);
+
             _logger.LogInformation(
                 "Snapshot atualizado com sucesso com {Count} stories",
                 ordered.Count);
@@ -137,6 +139,7 @@ public sealed class BestStoriesWorker : BackgroundService
         }
         catch (Exception ex)
         {
+            Metrics.Errors.Add(1);
             _logger.LogError(ex, "Erro ao processar best stories. Mantendo snapshot anterior");
         }
     }

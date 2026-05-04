@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using System.Diagnostics;
 
 namespace hacker.news.lab.infrastructure.Messaging;
 
@@ -14,6 +15,8 @@ public sealed class RabbitMqPublisher : IMessagePublisher, IDisposable
     private readonly IConnection _connection;
     private readonly IModel _channel;
     private readonly ILogger<RabbitMqPublisher> _logger;
+    private static readonly ActivitySource ActivitySource =
+    new("hacker.news.lab.messaging");
 
     public RabbitMqPublisher(
         IOptions<RabbitMqOptions> options,
@@ -36,6 +39,10 @@ public sealed class RabbitMqPublisher : IMessagePublisher, IDisposable
 
     public Task PublishAsync<T>(T message, CancellationToken ct = default)
     {
+        using var activity = ActivitySource.StartActivity("publish-event");
+
+        activity?.SetTag("event.type", typeof(T).Name);
+
         var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
         _channel.BasicPublish(

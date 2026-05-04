@@ -18,6 +18,8 @@ services:
       context: .
       dockerfile: src/hacker.news.lab.worker/Dockerfile
     container_name: hacker.news.lab.worker
+    ports:
+      - "8081:8080"
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -46,8 +48,31 @@ services:
       retries: 5
       start_period: 10s
 
-  jaeger:
-    image: jaegertracing/all-in-one:1.54
+  
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-    - "16686:16686"   # UI
-    - "6831:6831/udp"
+      - "9090:9090"
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
