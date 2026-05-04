@@ -32,7 +32,46 @@ flowchart LR
 
 ## 🔌 API
 
-GET /api/v1/stories/best?n=10
+### Base URL
+
+```text
+http://localhost:8080
+```
+
+---
+
+### Load Cache / Refresh Snapshot
+
+Before running the first query for best stories, you must trigger the cache loading process.
+
+This endpoint publishes a refresh event that will be processed by the worker.  
+The worker fetches Hacker News data, builds the snapshot and stores it in Redis.
+
+```http
+POST http://localhost:8080/api/v1/stories/best/refresh
+```
+
+Example using curl:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/stories/best/refresh
+```
+
+> The first request to retrieve stories should be executed only after the worker finishes processing and the Redis snapshot is available.
+
+---
+
+### Get Best Stories
+
+```http
+GET http://localhost:8080/api/v1/stories/best?n=10
+```
+
+Example using curl:
+
+```bash
+curl "http://localhost:8080/api/v1/stories/best?n=10"
+```
 
 ---
 
@@ -44,70 +83,103 @@ docker-compose up --build
 
 ---
 
+## ✅ Suggested Execution Flow
+
+1. Start the containers:
+
+```bash
+docker-compose up --build
+```
+
+2. Trigger cache/snapshot loading:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/stories/best/refresh
+```
+
+3. Wait for the worker to finish processing.
+
+4. Query the API:
+
+```bash
+curl "http://localhost:8080/api/v1/stories/best?n=10"
+```
+
+---
+
 ## 📊 Observability
 
 | Tool       | URL |
 |------------|-----|
+| API        | http://localhost:8080 |
 | Prometheus | http://localhost:9090 |
 | Grafana    | http://localhost:3000 |
 | Jaeger     | http://localhost:16686 |
 
 ---
 
-## 📈 Prometheus Queries (Examples)
+## 📈 Prometheus Queries Examples
 
-### 🔹 API Request Rate
+### API Request Rate
+
 ```promql
 rate(http_server_requests_seconds_count[1m])
 ```
 
 ---
 
-### 🔹 API Latency (avg)
+### API Average Latency
+
 ```promql
-rate(http_server_requests_seconds_sum[1m]) 
+rate(http_server_requests_seconds_sum[1m])
 /
 rate(http_server_requests_seconds_count[1m])
 ```
 
 ---
 
-### 🔹 Error Rate (5xx)
+### API Error Rate 5xx
+
 ```promql
 rate(http_server_requests_seconds_count{status_code=~"5.."}[1m])
 ```
 
 ---
 
-### 🔹 Worker Processed Stories
+### Worker Processed Stories
+
 ```promql
 rate(stories_processed[1m])
 ```
 
 ---
 
-### 🔹 Worker Errors
+### Worker Errors
+
 ```promql
 rate(worker_errors[1m])
 ```
 
 ---
 
-### 🔹 CPU Usage
+### CPU Usage
+
 ```promql
 process_cpu_seconds_total
 ```
 
 ---
 
-### 🔹 Memory Usage
+### Memory Usage
+
 ```promql
 process_resident_memory_bytes
 ```
 
 ---
 
-### 🔹 .NET GC Collections
+### .NET GC Collections
+
 ```promql
 dotnet_gc_collection_count_total
 ```
@@ -116,9 +188,19 @@ dotnet_gc_collection_count_total
 
 ## 🧠 Architecture Decisions
 
-- Snapshot for consistency
-- Redis for fast reads
-- Queue for decoupling
+### Snapshot Strategy
+
+The API never reads partially processed data.
+
+The worker creates a temporary snapshot, validates it and then atomically switches the active snapshot pointer.
+
+### Cache Strategy
+
+The system stores the full ordered list and derives any top N result using slicing.
+
+### Queue-based Processing
+
+RabbitMQ decouples the API from the heavy data processing workload.
 
 ---
 
@@ -134,16 +216,14 @@ dotnet_gc_collection_count_total
 ## 🛠️ Stack
 
 - .NET 9
+- ASP.NET Core Minimal API
+- Worker Service
 - Redis
 - RabbitMQ
 - OpenTelemetry
 - Prometheus
 - Grafana
 - Jaeger
-- Docker
+- Docker / Docker Compose
 
 ---
-
-## 📄 License
-
-MIT
