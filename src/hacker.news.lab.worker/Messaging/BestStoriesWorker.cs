@@ -35,56 +35,102 @@ public sealed class BestStoriesWorker : BackgroundService
 
     private async Task Handle(RefreshBestStoriesRequested _, CancellationToken ct)
     {
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
+
+        var cancellationToken = linkedCts.Token;
+
         _logger.LogInformation("Processing best stories...");
 
-        // 1. Buscar IDs
-        var ids = await _client.GetBestStoryIdsAsync(ct);
-
-        // Limite defensivo (ex: top 200)
-        var topIds = ids.Take(200).ToList();
-
-        var stories = new List<Story>();
-
-        // 2. Buscar detalhes (cache + API)
-        foreach (var id in topIds)
+        try
         {
-            var cacheKey = $"hn:story:{id}";
+            var ids = await _client.GetBestStoryIdsAsync(cancellationToken);
 
-            var cached = await _cache.GetAsync<Story>(cacheKey, ct);
-            if (cached is not null)
+            var topIds = ids
+                .Take(200)
+                .ToList();
+
+            using var semaphore = new SemaphoreSlim(10);
+
+            var tasks = topIds.Select(async id =>
             {
-                stories.Add(cached);
-                continue;
+                await semaphore.WaitAsync(cancellationToken);
+
+                try
+                {
+                    var cacheKey = $"hn:story:{id}";
+
+                    var cached = await _cache.GetAsync<Story>(cacheKey, cancellationToken);
+                    if (cached is not null)
+                        return cached;
+
+                    var story = await _client.GetStoryByIdAsync(id, cancellationToken);
+                    if (story is null)
+                        return null;
+
+                    await _cache.SetAsync(
+                        cacheKey,
+                        story,
+                        TimeSpan.FromMinutes(10),
+                        cancellationToken);
+
+                    return story;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to fetch story {StoryId}", id);
+                    return null;
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            var stories = await Task.WhenAll(tasks);
+
+            var ordered = stories
+                .Where(x => x is not null)
+                .Select(x => x!)
+                .OrderByDescending(x => x.Score)
+                .ToList();
+
+            if (!ordered.Any())
+            {
+                _logger.LogWarning("Snapshot vazio - mantendo snapshot anterior");
+                return;
             }
 
-            var story = await _client.GetStoryByIdAsync(id, ct);
-            if (story is null) continue;
+            if (ordered.Count < 10)
+            {
+                _logger.LogWarning(
+                    "Snapshot inválido. Apenas {Count} stories válidas. Mantendo snapshot anterior",
+                    ordered.Count);
 
-            await _cache.SetAsync(cacheKey, story, TimeSpan.FromMinutes(10), ct);
+                return;
+            }
 
-            stories.Add(story);
+            var tempKey = $"hn:stories:snapshot:temp:{Guid.NewGuid()}";
+
+            await _snapshot.SetSnapshotAsync(tempKey, ordered, cancellationToken);
+
+            await _snapshot.SetActiveSnapshotAsync(tempKey, cancellationToken);
+
+            _logger.LogInformation(
+                "Snapshot atualizado com sucesso com {Count} stories",
+                ordered.Count);
         }
-
-        // 3. Ordenar
-        var ordered = stories
-            .OrderByDescending(x => x.Score)
-            .ToList();
-
-        // 4. Snapshot temporário
-        var tempKey = $"hn:stories:snapshot:temp:{Guid.NewGuid()}";
-
-        await _snapshot.SetSnapshotAsync(tempKey, ordered, ct);
-
-        // 5. Validação simples
-        if (!ordered.Any())
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            _logger.LogWarning("Snapshot vazio - abortando swap");
-            return;
+            _logger.LogInformation("Worker cancelado pela aplicação");
         }
-
-        // 6. Atomic swap
-        await _snapshot.SetActiveSnapshotAsync(tempKey, ct);
-
-        _logger.LogInformation("Snapshot atualizado com sucesso");
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Timeout ao processar best stories. Mantendo snapshot anterior");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao processar best stories. Mantendo snapshot anterior");
+        }
     }
 }
