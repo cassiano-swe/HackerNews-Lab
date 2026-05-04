@@ -9,6 +9,9 @@ using StackExchange.Redis;
 using Polly;
 using Polly.Extensions.Http;
 using System.Net;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -33,6 +36,28 @@ builder.Services
     .AddPolicyHandler(GetCircuitBreakerPolicy());
 
 builder.Services.AddHostedService<BestStoriesWorker>();
+
+var serviceName = "hacker.news.lab.worker";
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService(serviceName))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddHttpClientInstrumentation()
+            .AddSource(serviceName)
+            .AddJaegerExporter(o =>
+            {
+                o.AgentHost = "jaeger";
+                o.AgentPort = 6831;
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddRuntimeInstrumentation()
+            .AddPrometheusExporter();
+    });
 
 var app = builder.Build();
 

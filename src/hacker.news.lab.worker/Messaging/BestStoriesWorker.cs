@@ -3,6 +3,7 @@ using hacker.news.lab.domain.models;
 using hacker.news.lab.domain.Events;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace hacker.news.lab.worker;
 
@@ -13,6 +14,8 @@ public sealed class BestStoriesWorker : BackgroundService
     private readonly ISnapshotStore _snapshot;
     private readonly ICache _cache;
     private readonly ILogger<BestStoriesWorker> _logger;
+    private static readonly ActivitySource ActivitySource =
+    new("hacker.news.lab.worker");
 
     public BestStoriesWorker(
         IMessagePublisher bus,
@@ -30,6 +33,10 @@ public sealed class BestStoriesWorker : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var activity = ActivitySource.StartActivity("process-best-stories");
+
+        activity?.SetTag("worker", "best-stories");
+
         return _bus.SubscribeAsync<RefreshBestStoriesRequested>(Handle, stoppingToken);
     }
 

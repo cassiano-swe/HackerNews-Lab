@@ -15,7 +15,7 @@ RUN dotnet publish src/hacker.news.lab.worker/hacker.news.lab.worker.csproj \
     -c Release \
     -o /app/publish 
 
-FROM mcr.microsoft.com/dotnet/runtime:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 
 COPY --from=build /app/publish .

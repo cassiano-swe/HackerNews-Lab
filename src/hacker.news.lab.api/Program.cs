@@ -4,6 +4,9 @@ using hacker.news.lab.application.contracts;
 using hacker.news.lab.infrastructure.Clients.HackerNews;
 using hacker.news.lab.infrastructure.Messaging;
 using hacker.news.lab.domain.Events;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +23,42 @@ builder.Services.Configure<RabbitMqOptions>(
 
 builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 
+
+var serviceName = "hacker.news.lab.api";
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(r => r.AddService(serviceName))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSource(serviceName)
+            .AddJaegerExporter(o =>
+            {
+                o.AgentHost = "jaeger";
+                o.AgentPort = 6831;
+            });
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddAspNetCoreInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddPrometheusExporter();
+    });
+
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var traceId = System.Diagnostics.Activity.Current?.TraceId.ToString();
+    context.Response.Headers["X-Trace-Id"] = traceId ?? "";
+    await next();
+});
+
+
+app.MapPrometheusScrapingEndpoint(); // /metrics
 
 if (app.Environment.IsDevelopment())
 {
