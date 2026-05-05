@@ -1,4 +1,5 @@
 using hacker.news.lab.application.contracts;
+using hacker.news.lab.infrastructure.Messaging;
 using hacker.news.lab.infrastructure.Options;
 using hacker.news.lab.infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +22,10 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ISnapshotStore, RedisSnapshotStore>();
+
+        services.Configure<RabbitMqOptions>(config.GetSection("RabbitMq"));
+
+        services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 
         return services;
     }

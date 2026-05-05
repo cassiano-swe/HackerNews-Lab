@@ -3,7 +3,6 @@ using hacker.news.lab.application.models;
 using hacker.news.lab.domain.events;
 using hacker.news.lab.infrastructure;
 using hacker.news.lab.infrastructure.Clients.HackerNews;
-using hacker.news.lab.infrastructure.Messaging;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -17,11 +16,6 @@ builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
 {
     client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/v0/");
 });
-
-builder.Services.Configure<RabbitMqOptions>(
-    builder.Configuration.GetSection("RabbitMq"));
-
-builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 
 var serviceName = "hacker.news.lab.api";
 
