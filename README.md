@@ -120,68 +120,10 @@ curl "http://localhost:8080/api/v1/stories/best?n=10"
 
 ## 📈 Prometheus Queries Examples
 
-### API Request Rate
-
-```promql
-rate(http_server_requests_seconds_count[1m])
-```
-
----
-
-### API Average Latency
-
-```promql
-rate(http_server_requests_seconds_sum[1m])
-/
-rate(http_server_requests_seconds_count[1m])
-```
-
----
-
-### API Error Rate 5xx
-
-```promql
-rate(http_server_requests_seconds_count{status_code=~"5.."}[1m])
-```
-
----
-
 ### Worker Processed Stories
 
 ```promql
-rate(stories_processed[1m])
-```
-
----
-
-### Worker Errors
-
-```promql
-rate(worker_errors[1m])
-```
-
----
-
-### CPU Usage
-
-```promql
-process_cpu_seconds_total
-```
-
----
-
-### Memory Usage
-
-```promql
-process_resident_memory_bytes
-```
-
----
-
-### .NET GC Collections
-
-```promql
-dotnet_gc_collection_count_total
+stories_processed_total
 ```
 
 ---
