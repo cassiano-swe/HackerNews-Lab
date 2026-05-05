@@ -35,7 +35,7 @@ flowchart LR
 ### Base URL
 
 ```text
-http://localhost:8080
+http://localhost:5000
 ```
 
 ---
@@ -48,13 +48,13 @@ This endpoint publishes a refresh event that will be processed by the worker.
 The worker fetches Hacker News data, builds the snapshot and stores it in Redis.
 
 ```http
-POST http://localhost:8080/api/v1/stories/best/refresh
+POST http://localhost:5000/api/v1/stories/best/refresh
 ```
 
 Example using curl:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/stories/best/refresh
+curl -X POST http://localhost:5000/api/v1/stories/best/refresh
 ```
 
 > The first request to retrieve stories should be executed only after the worker finishes processing and the Redis snapshot is available.
@@ -64,13 +64,13 @@ curl -X POST http://localhost:8080/api/v1/stories/best/refresh
 ### Get Best Stories
 
 ```http
-GET http://localhost:8080/api/v1/stories/best?n=10
+GET http://localhost:5000/api/v1/stories/best?n=10
 ```
 
 Example using curl:
 
 ```bash
-curl "http://localhost:8080/api/v1/stories/best?n=10"
+curl "http://localhost:5000/api/v1/stories/best?n=10"
 ```
 
 ---
@@ -94,7 +94,7 @@ docker-compose up --build
 2. Trigger cache/snapshot loading:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/stories/best/refresh
+curl -X POST http://localhost:5000/api/v1/stories/best/refresh
 ```
 
 3. Wait for the worker to finish processing.
@@ -102,7 +102,7 @@ curl -X POST http://localhost:8080/api/v1/stories/best/refresh
 4. Query the API:
 
 ```bash
-curl "http://localhost:8080/api/v1/stories/best?n=10"
+curl "http://localhost:5000/api/v1/stories/best?n=10"
 ```
 
 ---
@@ -111,7 +111,7 @@ curl "http://localhost:8080/api/v1/stories/best?n=10"
 
 | Tool       | URL |
 |------------|-----|
-| API        | http://localhost:8080 |
+| API        | http://localhost:5000 |
 | Prometheus | http://localhost:9090 |
 | Grafana    | http://localhost:3000 |
 | Jaeger     | http://localhost:16686 |
