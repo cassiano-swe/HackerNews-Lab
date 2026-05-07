@@ -2,12 +2,14 @@ using hacker.news.lab.application.contracts;
 using hacker.news.lab.application.models;
 using hacker.news.lab.domain.events;
 using hacker.news.lab.infrastructure;
+using hacker.news.lab.infrastructure.Exceptions;
 using hacker.news.lab.infrastructure.Clients.HackerNews;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+const string serviceName = "hacker.news.lab.api";
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,7 +19,8 @@ builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
     client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/v0/");
 });
 
-var serviceName = "hacker.news.lab.api";
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(r => r.AddService(serviceName))
@@ -28,10 +31,7 @@ builder.Services.AddOpenTelemetry()
             .AddHttpClientInstrumentation()
             .AddSource(serviceName)
             .AddSource("hacker.news.lab.messaging")
-            .AddOtlpExporter(o =>
-            {
-                o.Endpoint = new Uri("http://jaeger:4317");
-            });
+            .AddOtlpExporter(o => { o.Endpoint = new Uri("http://jaeger:4317"); });
     })
     .WithMetrics(metrics =>
     {
@@ -51,6 +51,8 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.UseExceptionHandler();
+
 app.MapPrometheusScrapingEndpoint("/metrics");
 
 if (app.Environment.IsDevelopment())
@@ -66,42 +68,43 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
     .Produces(StatusCodes.Status200OK);
 
 app.MapGet("/api/v1/stories/best", async (
-    int n,
-    ISnapshotStore snapshotStore,
-    CancellationToken ct) =>
-{
-    if (n <= 0 || n > 200)
-        return Results.BadRequest("Invalid 'n'");
+        int n,
+        ISnapshotStore snapshotStore,
+        CancellationToken ct) =>
+    {
+        if (n <= 0 || n > 200)
+            return Results.BadRequest("Invalid 'n'");
 
-    var stories = await snapshotStore.GetActiveSnapshotAsync(ct);
+        var stories = await snapshotStore.GetActiveSnapshotAsync(ct);
 
-    var result = stories
-        .OrderByDescending(x => x.Score)
-        .Take(n)
-        .Select(x => new
-        {
-            title = x.Title,
-            uri = x.Uri,
-            by = x.By,
-            time = x.Time,
-            score = x.Score,
-            commentCount = x.Descendants
-        });
+        var result = stories
+            .OrderByDescending(x => x.Score)
+            .Take(n)
+            .Select(static x => new
+            {
+                title = x.Title,
+                uri = x.Uri,
+                by = x.By,
+                time = x.Time,
+                score = x.Score,
+                commentCount = x.Descendants
+            });
 
-    return Results.Ok(result);
-})
+        return Results.Ok(result);
+    })
     .WithName("GetBestStories")
     .WithTags("Stories")
     .WithSummary("Returns the top Hacker News stories ordered by score.")
-    .WithDescription("The optional n query parameter controls the number of stories returned and must be between 1 and 200.")
-    .Produces<List<StoryResponse>>(StatusCodes.Status200OK)
+    .WithDescription(
+        "The optional n query parameter controls the number of stories returned and must be between 1 and 200.")
+    .Produces<List<StoryResponse>>()
     .Produces<string>(StatusCodes.Status400BadRequest);
 
 app.MapPost("/api/v1/stories/refresh", async (IMessagePublisher publisher, CancellationToken ct) =>
 {
     await publisher.PublishAsync(
-       new RefreshBestStoriesRequested(DateTime.UtcNow),
-       ct);
+        new RefreshBestStoriesRequested(DateTime.UtcNow),
+        ct);
 
     return Results.Accepted();
 });

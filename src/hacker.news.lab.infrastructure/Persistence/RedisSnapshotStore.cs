@@ -35,7 +35,6 @@ public class RedisSnapshotStore : ISnapshotStore
             return [];
 
 
-
         return JsonSerializer.Deserialize<IReadOnlyList<Story>>(json!) ?? [];
     }
 
