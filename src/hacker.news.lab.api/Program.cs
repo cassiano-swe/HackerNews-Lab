@@ -1,9 +1,12 @@
 using hacker.news.lab.application.contracts;
 using hacker.news.lab.application.models;
+using hacker.news.lab.api.Jobs;
 using hacker.news.lab.domain.events;
 using hacker.news.lab.infrastructure;
 using hacker.news.lab.infrastructure.Exceptions;
 using hacker.news.lab.infrastructure.Clients.HackerNews;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -12,35 +15,41 @@ var builder = WebApplication.CreateBuilder(args);
 const string serviceName = "hacker.news.lab.api";
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+builder.Services.AddHangfire(config => config.UseMemoryStorage());
+builder.Services.AddHangfireServer();
+
 builder.Services.AddHttpClient<IHackerNewsClient, HackerNewsClient>(client =>
 {
     client.BaseAddress = new Uri("https://hacker-news.firebaseio.com/v0/");
 });
 
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(r => r.AddService(serviceName))
-    .WithTracing(tracing =>
-    {
-        tracing
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddSource(serviceName)
-            .AddSource("hacker.news.lab.messaging")
-            .AddOtlpExporter(o => { o.Endpoint = new Uri("http://jaeger:4317"); });
-    })
+    .ConfigureResource(resource => resource.AddService(serviceName))
     .WithMetrics(metrics =>
     {
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation()
-            .AddPrometheusExporter();
+            .AddPrometheusExporter()
+            .AddRuntimeInstrumentation();
+    })
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSource("hacker.news.lab.messaging")
+            .AddSource(serviceName)
+            .AddOtlpExporter(options => { options.Endpoint = new Uri("http://jaeger:4317"); });
     });
+
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -52,6 +61,7 @@ app.Use(async (context, next) =>
 });
 
 app.UseExceptionHandler();
+app.UseHangfireDashboard("/hangfire");
 
 app.MapPrometheusScrapingEndpoint("/metrics");
 
@@ -108,5 +118,9 @@ app.MapPost("/api/v1/stories/refresh", async (IMessagePublisher publisher, Cance
 
     return Results.Accepted();
 });
+
+app.Services
+    .GetRequiredService<IBackgroundJobClient>()
+    .Enqueue<RefreshBestStoriesJob>(job => job.PublishAndScheduleNextAsync());
 
 app.Run();
