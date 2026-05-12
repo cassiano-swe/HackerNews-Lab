@@ -2,6 +2,8 @@ using hacker.news.lab.application.contracts;
 using hacker.news.lab.infrastructure.Messaging;
 using hacker.news.lab.infrastructure.Options;
 using hacker.news.lab.infrastructure.Persistence;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -14,6 +16,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration config)
     {
         services.Configure<RedisOptions>(config.GetSection("Redis"));
+        services.Configure<RabbitMqOptions>(config.GetSection("RabbitMq"));
 
         services.AddSingleton<IConnectionMultiplexer>(sp =>
         {
@@ -21,10 +24,10 @@ public static class DependencyInjection
             return ConnectionMultiplexer.Connect(options.ConnectionString);
         });
 
+        services.AddHangfire(hangfireConfig => hangfireConfig.UseMemoryStorage());
+        services.AddHangfireServer();
+
         services.AddScoped<ISnapshotStore, RedisSnapshotStore>();
-
-        services.Configure<RabbitMqOptions>(config.GetSection("RabbitMq"));
-
         services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 
         return services;

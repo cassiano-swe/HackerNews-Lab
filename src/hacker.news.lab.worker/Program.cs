@@ -13,12 +13,12 @@ using StackExchange.Redis;
 using System.Net;
 
 var builder = Host.CreateApplicationBuilder(args);
+const string serviceName = "hacker.news.lab.worker";
 
 builder.Services.Configure<RabbitMqOptions>(
     builder.Configuration.GetSection("RabbitMq"));
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(
-    _ => ConnectionMultiplexer.Connect("redis:6379"));
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect("redis:6379"));
 
 builder.Services.AddSingleton<ISnapshotStore, RedisSnapshotStore>();
 builder.Services.AddSingleton<ICache, RedisCache>();
@@ -35,8 +35,6 @@ builder.Services
 
 builder.Services.AddHostedService<BestStoriesWorker>();
 
-var serviceName = "hacker.news.lab.worker";
-
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(r => r.AddService(serviceName))
     .WithMetrics(metrics =>
@@ -45,10 +43,7 @@ builder.Services.AddOpenTelemetry()
             .AddMeter("hacker.news.lab.worker")
             .AddRuntimeInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddPrometheusHttpListener(options =>
-            {
-                options.UriPrefixes = new[] { "http://+:8080/" };
-            });
+            .AddPrometheusHttpListener(options => { options.UriPrefixes = new[] { "http://+:8080/" }; });
     })
     .WithTracing(tracing =>
     {
@@ -56,15 +51,13 @@ builder.Services.AddOpenTelemetry()
             .AddSource(serviceName)
             .AddSource("hacker.news.lab.messaging")
             .AddHttpClientInstrumentation()
-            .AddOtlpExporter(o =>
-            {
-                o.Endpoint = new Uri("http://jaeger:4317");
-            });
+            .AddOtlpExporter(o => { o.Endpoint = new Uri("http://jaeger:4317"); });
     });
 
 var app = builder.Build();
 
 app.Run();
+return;
 
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
